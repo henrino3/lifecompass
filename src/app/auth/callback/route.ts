@@ -37,24 +37,35 @@ export async function GET(request: Request) {
       }
     );
 
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
-    if (!error) {
+    console.log('Auth callback: exchange result', {
+      hasSession: !!data?.session,
+      hasUser: !!data?.user,
+      error: error?.message,
+      cookieCount: cookiesToSet.length,
+      cookieNames: cookiesToSet.map(c => c.name)
+    });
+
+    if (!error && data?.session) {
       // Create the response with explicit 302 status for better cookie handling
       const response = NextResponse.redirect(`${redirectUrl}/`, { status: 302 });
 
       // Set all cookies on the response
       cookiesToSet.forEach(({ name, value, options }) => {
         response.cookies.set(name, value, options);
+        console.log(`Setting cookie: ${name}, options:`, options);
       });
-
-      // Log cookie count for debugging
-      console.log(`Auth callback: Setting ${cookiesToSet.length} cookies`);
 
       return response;
     }
 
-    return NextResponse.redirect(`${redirectUrl}/auth?error=${encodeURIComponent(error.message)}`);
+    if (error) {
+      return NextResponse.redirect(`${redirectUrl}/auth?error=${encodeURIComponent(error.message)}`);
+    }
+
+    // No session returned
+    return NextResponse.redirect(`${redirectUrl}/auth?error=No session returned`);
   }
 
   return NextResponse.redirect(`${redirectUrl}/auth?error=No code provided`);
