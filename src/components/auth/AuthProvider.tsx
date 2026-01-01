@@ -111,6 +111,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = async () => {
     const supabase = getSupabase();
     await supabase.auth.signOut();
+    // Explicitly clear local state
+    setUser(null);
+    setSession(null);
     setStoreUser(null);
     setIsGuest(true);
   };
