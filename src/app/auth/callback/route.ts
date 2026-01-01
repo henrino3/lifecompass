@@ -52,11 +52,19 @@ export async function GET(request: Request) {
       }
     );
 
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
-    if (!error) {
+    // Debug: Check what we got back
+    const debugInfo = {
+      hasSession: !!data?.session,
+      hasUser: !!data?.user,
+      errorMsg: error?.message || 'none',
+      cookieCount: cookiesToSet.length,
+    };
+
+    if (!error && data?.session) {
       // Create redirect response and set cookies explicitly
-      const response = NextResponse.redirect(`${redirectUrl}/`);
+      const response = NextResponse.redirect(`${redirectUrl}/?auth=success&cookies=${cookiesToSet.length}`);
 
       // Set all auth cookies on the response
       cookiesToSet.forEach(({ name, value, options }) => {
@@ -66,7 +74,9 @@ export async function GET(request: Request) {
       return response;
     }
 
-    return NextResponse.redirect(`${redirectUrl}/auth?error=${encodeURIComponent(error.message)}`);
+    // If we get here, something went wrong
+    const errorDetail = error?.message || `no-session-returned,debug:${JSON.stringify(debugInfo)}`;
+    return NextResponse.redirect(`${redirectUrl}/auth?error=${encodeURIComponent(errorDetail)}`);
   }
 
   return NextResponse.redirect(`${redirectUrl}/auth?error=No code provided`);
