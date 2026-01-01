@@ -13,7 +13,6 @@ interface AuthContextType {
   session: Session | null;
   isLoading: boolean;
   signInWithEmail: (email: string) => Promise<{ error: Error | null }>;
-  signInWithGoogle: () => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
 }
 
@@ -30,18 +29,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const supabase = getSupabase();
 
-    // Debug: Log cookie info
-    const cookieNames = document.cookie.split(';').map(c => c.trim().split('=')[0]).filter(n => n.includes('sb-'));
-    console.log('AuthProvider: cookies found', cookieNames);
-
     // Get initial session
-    supabase.auth.getSession().then(async ({ data: { session }, error }) => {
-      console.log('AuthProvider: getSession result', {
-        hasSession: !!session,
-        hasUser: !!session?.user,
-        userId: session?.user?.id,
-        error: error?.message
-      });
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
 
@@ -107,17 +96,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error };
   };
 
-  const signInWithGoogle = async () => {
-    const supabase = getSupabase();
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
-    return { error: error as Error | null };
-  };
-
   const signOut = async () => {
     const supabase = getSupabase();
     await supabase.auth.signOut();
@@ -139,7 +117,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         session,
         isLoading,
         signInWithEmail,
-        signInWithGoogle,
         signOut,
       }}
     >

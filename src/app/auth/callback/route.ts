@@ -1,10 +1,12 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
+import { type EmailOtpType } from '@supabase/supabase-js';
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
-  const code = searchParams.get('code');
+  const token_hash = searchParams.get('token_hash');
+  const type = searchParams.get('type') as EmailOtpType | null;
 
   // Determine the redirect URL for Vercel
   const forwardedHost = request.headers.get('x-forwarded-host');
@@ -14,14 +16,8 @@ export async function GET(request: Request) {
     redirectUrl = `https://${forwardedHost}`;
   }
 
-  if (code) {
+  if (token_hash && type) {
     const cookieStore = await cookies();
-
-    // WORKAROUND: Next.js 14+ bug - call getAll() twice before exchangeCodeForSession
-    // This ensures the cookie store is properly initialized
-    // See: https://github.com/supabase/ssr/issues/55
-    cookieStore.getAll();
-    cookieStore.getAll();
 
     // Collect cookies to set on the redirect response
     const cookiesToSet: { name: string; value: string; options: CookieOptions }[] = [];
@@ -39,32 +35,28 @@ export async function GET(request: Request) {
             cookies.forEach((cookie) => {
               cookiesToSet.push(cookie);
             });
-            // Also try to set via cookieStore (may work in some cases)
+            // Also try to set via cookieStore
             try {
               cookies.forEach(({ name, value, options }) =>
                 cookieStore.set(name, value, options)
               );
             } catch {
-              // Ignore errors
+              // Ignore errors in Server Component context
             }
           },
         },
       }
     );
 
-    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+    // Verify the magic link token
+    const { error } = await supabase.auth.verifyOtp({
+      type,
+      token_hash,
+    });
 
-    // Debug: Check what we got back
-    const debugInfo = {
-      hasSession: !!data?.session,
-      hasUser: !!data?.user,
-      errorMsg: error?.message || 'none',
-      cookieCount: cookiesToSet.length,
-    };
-
-    if (!error && data?.session) {
+    if (!error) {
       // Create redirect response and set cookies explicitly
-      const response = NextResponse.redirect(`${redirectUrl}/?auth=success&cookies=${cookiesToSet.length}`);
+      const response = NextResponse.redirect(`${redirectUrl}/`);
 
       // Set all auth cookies on the response
       cookiesToSet.forEach(({ name, value, options }) => {
@@ -74,10 +66,8 @@ export async function GET(request: Request) {
       return response;
     }
 
-    // If we get here, something went wrong
-    const errorDetail = error?.message || `no-session-returned,debug:${JSON.stringify(debugInfo)}`;
-    return NextResponse.redirect(`${redirectUrl}/auth?error=${encodeURIComponent(errorDetail)}`);
+    return NextResponse.redirect(`${redirectUrl}/auth?error=${encodeURIComponent(error.message)}`);
   }
 
-  return NextResponse.redirect(`${redirectUrl}/auth?error=No code provided`);
+  return NextResponse.redirect(`${redirectUrl}/auth?error=Invalid magic link`);
 }
