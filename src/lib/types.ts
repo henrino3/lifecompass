@@ -6,6 +6,24 @@ export type QuestionType = 'text' | 'textarea' | 'list' | 'rating' | 'word' | 'c
 
 export type Section = 'past' | 'future';
 
+// Reflection periods for multiple reflections per year
+export type ReflectionPeriod = 'q1' | 'mid_year' | 'year_end';
+
+export const PERIOD_INFO: Record<ReflectionPeriod, { name: string; description: string }> = {
+  q1: {
+    name: 'Q1 Check-in',
+    description: 'First quarter reflection',
+  },
+  mid_year: {
+    name: 'Mid-Year Review',
+    description: 'Half-year checkpoint',
+  },
+  year_end: {
+    name: 'Year-End Reflection',
+    description: 'Full year reflection',
+  },
+};
+
 export interface Question {
   id: string;
   section: Section;
@@ -30,6 +48,7 @@ export interface JourneyResponse {
   updatedAt: Date;
 }
 
+// Legacy Journey type (kept for backward compatibility with localStorage)
 export interface Journey {
   id: string;
   year: number;
@@ -41,12 +60,57 @@ export interface Journey {
   completedAt?: Date;
 }
 
+// New Reflection type (supports multiple per year with periods and mode upgrading)
+export interface Reflection {
+  id: string;
+  userId?: string; // Optional for guests
+  year: number;
+  period: ReflectionPeriod;
+  periodLabel?: string; // Optional custom label
+  mode: Mode;
+  responses: Record<string, JourneyResponse>;
+  progress: number;
+  completed: boolean;
+  startedAt: Date;
+  completedAt?: Date;
+  upgradedFrom?: string; // ID of reflection this was upgraded from
+  syncedAt?: Date; // Last sync with cloud
+  localOnly?: boolean; // True if not synced to cloud yet
+}
+
+// User profile for authenticated users
+export interface UserProfile {
+  id: string;
+  email?: string;
+  fullName?: string;
+  avatarUrl?: string;
+  theme: Theme;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+// Legacy User type (kept for backward compatibility)
 export interface User {
   id: string;
   email?: string;
   name?: string;
   theme: Theme;
   journeys: Journey[];
+}
+
+// Auth state
+export interface AuthState {
+  user: UserProfile | null;
+  isLoading: boolean;
+  isGuest: boolean;
+}
+
+// Sync state for cloud synchronization
+export interface SyncState {
+  status: 'idle' | 'syncing' | 'error' | 'offline';
+  lastSyncedAt: Date | null;
+  pendingChanges: number;
+  error?: string;
 }
 
 export interface Achievement {
