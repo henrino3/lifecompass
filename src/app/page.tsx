@@ -274,6 +274,7 @@ function HomeContent() {
                   onClick={async () => {
                     await signOut();
                     setShowSettings(false);
+                    router.refresh();
                   }}
                   className="w-full p-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-colors flex items-center justify-center gap-2"
                 >
