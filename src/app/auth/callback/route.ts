@@ -1,14 +1,13 @@
 import { createServerClient } from '@supabase/ssr';
-import { NextResponse, type NextRequest } from 'next/server';
+import { cookies } from 'next/headers';
+import { NextResponse } from 'next/server';
 
-export async function GET(request: NextRequest) {
-  const requestUrl = new URL(request.url);
-  const code = requestUrl.searchParams.get('code');
-  const origin = requestUrl.origin;
+export async function GET(request: Request) {
+  const { searchParams, origin } = new URL(request.url);
+  const code = searchParams.get('code');
 
   if (code) {
-    // Create the redirect response first so we can attach cookies to it
-    const response = NextResponse.redirect(`${origin}/`);
+    const cookieStore = await cookies();
 
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -16,32 +15,40 @@ export async function GET(request: NextRequest) {
       {
         cookies: {
           getAll() {
-            return request.cookies.getAll();
+            return cookieStore.getAll();
           },
           setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value, options }) => {
-              // Set cookies directly on the response
-              response.cookies.set(name, value, options);
-            });
+            try {
+              cookiesToSet.forEach(({ name, value, options }) =>
+                cookieStore.set(name, value, options)
+              );
+            } catch {
+              // The `setAll` method was called from a Server Component.
+              // This can be ignored if you have middleware refreshing sessions.
+            }
           },
         },
       }
     );
 
-    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
 
-    if (error) {
-      // Return specific error message for debugging
-      return NextResponse.redirect(`${origin}/auth?error=${encodeURIComponent(error.message)}`);
+    if (!error) {
+      // Use the x-forwarded-host header for production URLs on Vercel
+      const forwardedHost = request.headers.get('x-forwarded-host');
+      const isLocalEnv = process.env.NODE_ENV === 'development';
+
+      if (isLocalEnv) {
+        return NextResponse.redirect(`${origin}/`);
+      } else if (forwardedHost) {
+        return NextResponse.redirect(`https://${forwardedHost}/`);
+      } else {
+        return NextResponse.redirect(`${origin}/`);
+      }
     }
 
-    if (!data.session) {
-      return NextResponse.redirect(`${origin}/auth?error=No session returned`);
-    }
-
-    return response;
+    return NextResponse.redirect(`${origin}/auth?error=${encodeURIComponent(error.message)}`);
   }
 
-  // Return to auth page if no code provided
   return NextResponse.redirect(`${origin}/auth?error=No code provided`);
 }
