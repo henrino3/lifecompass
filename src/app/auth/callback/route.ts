@@ -40,13 +40,16 @@ export async function GET(request: Request) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {
-      // Create the response and manually set cookies
-      const response = NextResponse.redirect(`${redirectUrl}/`);
+      // Create the response with explicit 302 status for better cookie handling
+      const response = NextResponse.redirect(`${redirectUrl}/`, { status: 302 });
 
       // Set all cookies on the response
       cookiesToSet.forEach(({ name, value, options }) => {
         response.cookies.set(name, value, options);
       });
+
+      // Log cookie count for debugging
+      console.log(`Auth callback: Setting ${cookiesToSet.length} cookies`);
 
       return response;
     }
