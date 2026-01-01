@@ -1,27 +1,291 @@
+@import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --font-crimson: 'Crimson Pro', Georgia, serif;
+  --font-dm-sans: 'DM Sans', system-ui, sans-serif;
+
+  /* Default: Cosmic theme */
+  --bg: #0a0a1a;
+  --bg-light: #12122a;
+  --surface: #1a1a3a;
+  --border: #2a2a5a;
+  --accent: #f59e0b;
+  --accent-hover: #fbbf24;
+  --text: #e5e7eb;
+  --text-muted: #9ca3af;
+  --glow-color: rgba(245, 158, 11, 0.3);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Theme: Calm */
+[data-theme="calm"] {
+  --bg: #1a1f1c;
+  --bg-light: #232a26;
+  --surface: #2d3830;
+  --border: #3d4a3f;
+  --accent: #86efac;
+  --accent-hover: #a7f3d0;
+  --text: #f0fdf4;
+  --text-muted: #a7f3d0;
+  --glow-color: rgba(134, 239, 172, 0.3);
+}
+
+/* Theme: Minimal */
+[data-theme="minimal"] {
+  --bg: #0a0a0a;
+  --bg-light: #141414;
+  --surface: #1f1f1f;
+  --border: #2a2a2a;
+  --accent: #ffffff;
+  --accent-hover: #e5e5e5;
+  --text: #fafafa;
+  --text-muted: #737373;
+  --glow-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Theme: Sunset */
+[data-theme="sunset"] {
+  --bg: #1a0a14;
+  --bg-light: #2a1424;
+  --surface: #3a1e34;
+  --border: #5a2e4a;
+  --accent: #fb923c;
+  --accent-hover: #fdba74;
+  --text: #fef2f2;
+  --text-muted: #fca5a5;
+  --glow-color: rgba(251, 146, 60, 0.3);
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+  font-family: var(--font-dm-sans);
+  line-height: 1.6;
+  min-height: 100vh;
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-light);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+}
+
+/* Focus styles */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Selection */
+::selection {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-crimson);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+/* Star particle base styles */
+.star {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: white;
+  border-radius: 50%;
+  opacity: 0.5;
+}
+
+.star-large {
+  width: 3px;
+  height: 3px;
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.5);
+}
+
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Glass effect */
+.glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Glow effect */
+.glow {
+  box-shadow: 0 0 20px var(--glow-color);
+}
+
+/* Card hover effect */
+.card-hover {
+  transition: all 0.3s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+/* Button base styles */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  border-radius: 9999px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border: none;
+  font-family: var(--font-dm-sans);
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+.btn-primary:hover {
+  background: var(--accent-hover);
+  transform: scale(1.02);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.btn-secondary:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Input styles */
+.input {
+  width: 100%;
+  padding: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  font-size: 1rem;
+  font-family: var(--font-dm-sans);
+  transition: all 0.2s ease;
+  resize: none;
+}
+
+.input:focus {
+  border-color: var(--accent);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--glow-color);
+}
+
+.input::placeholder {
+  color: var(--text-muted);
+}
+
+/* Progress bar */
+.progress-bar {
+  height: 4px;
+  background: var(--surface);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent) 0%, var(--accent-hover) 100%);
+  border-radius: 2px;
+  transition: width 0.5s ease;
+}
+
+/* Fade animations for page transitions */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+/* Staggered animation delays */
+.delay-100 { animation-delay: 0.1s; }
+.delay-200 { animation-delay: 0.2s; }
+.delay-300 { animation-delay: 0.3s; }
+.delay-400 { animation-delay: 0.4s; }
+.delay-500 { animation-delay: 0.5s; }
+
+/* Safe area padding for mobile */
+@supports (padding: max(0px)) {
+  .safe-area-bottom {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+}
+
+/* Mobile touch improvements */
+@media (hover: none) {
+  .card-hover:hover {
+    transform: none;
+  }
+
+  .card-hover:active {
+    transform: scale(0.98);
+  }
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
