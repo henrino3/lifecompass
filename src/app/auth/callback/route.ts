@@ -28,13 +28,20 @@ export async function GET(request: NextRequest) {
       }
     );
 
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
-    if (!error) {
-      return response;
+    if (error) {
+      // Return specific error message for debugging
+      return NextResponse.redirect(`${origin}/auth?error=${encodeURIComponent(error.message)}`);
     }
+
+    if (!data.session) {
+      return NextResponse.redirect(`${origin}/auth?error=No session returned`);
+    }
+
+    return response;
   }
 
-  // Return to auth page if something went wrong
-  return NextResponse.redirect(`${origin}/auth?error=Could not authenticate`);
+  // Return to auth page if no code provided
+  return NextResponse.redirect(`${origin}/auth?error=No code provided`);
 }
