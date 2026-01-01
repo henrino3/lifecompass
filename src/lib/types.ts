@@ -26,7 +26,7 @@ export interface LifeArea {
 
 export interface JourneyResponse {
   questionId: string;
-  value: string | string[] | number | Record<string, number>;
+  value: string | string[] | number | Record<string, number> | Record<string, string>;
   updatedAt: Date;
 }
 

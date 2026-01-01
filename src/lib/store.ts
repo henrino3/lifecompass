@@ -20,7 +20,7 @@ interface CompassState {
   // Journey data
   journeys: Record<number, Journey>;
   responses: Record<string, JourneyResponse>;
-  setResponse: (questionId: string, value: string | string[] | number | Record<string, number>) => void;
+  setResponse: (questionId: string, value: string | string[] | number | Record<string, number> | Record<string, string>) => void;
   getProgress: () => number;
   startJourney: (year: number, mode: Mode) => void;
   completeJourney: () => void;

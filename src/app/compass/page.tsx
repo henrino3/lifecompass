@@ -15,8 +15,8 @@ function QuestionCard({
   onChange
 }: {
   question: Question;
-  value: string | string[] | Record<string, number>;
-  onChange: (value: string | string[] | Record<string, number>) => void;
+  value: string | string[] | Record<string, number> | Record<string, string>;
+  onChange: (value: string | string[] | Record<string, number> | Record<string, string>) => void;
 }) {
   if (question.type === 'text' || question.type === 'word') {
     return (
@@ -256,7 +256,7 @@ function ExportModal({
 }: {
   isOpen: boolean;
   onClose: () => void;
-  responses: Record<string, { value: string | string[] | Record<string, unknown> }>;
+  responses: Record<string, { value: string | string[] | number | Record<string, unknown> }>;
   mode: string;
   year: number;
 }) {
@@ -470,7 +470,7 @@ export default function CompassPage() {
     }
   }, [lastSaved]);
 
-  const handleResponse = useCallback((value: string | string[] | Record<string, number>) => {
+  const handleResponse = useCallback((value: string | string[] | Record<string, number> | Record<string, string>) => {
     if (currentQuestion) {
       setResponse(currentQuestion.id, value);
     }
