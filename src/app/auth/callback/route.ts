@@ -1,4 +1,4 @@
-import { createServerClient } from '@supabase/ssr';
+import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
@@ -6,8 +6,19 @@ export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
 
+  // Determine the redirect URL
+  const forwardedHost = request.headers.get('x-forwarded-host');
+  const isLocalEnv = process.env.NODE_ENV === 'development';
+  let redirectUrl = origin;
+  if (!isLocalEnv && forwardedHost) {
+    redirectUrl = `https://${forwardedHost}`;
+  }
+
   if (code) {
     const cookieStore = await cookies();
+
+    // Store cookies to set on the response
+    const cookiesToSet: { name: string; value: string; options: CookieOptions }[] = [];
 
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -17,15 +28,10 @@ export async function GET(request: Request) {
           getAll() {
             return cookieStore.getAll();
           },
-          setAll(cookiesToSet) {
-            try {
-              cookiesToSet.forEach(({ name, value, options }) =>
-                cookieStore.set(name, value, options)
-              );
-            } catch {
-              // The `setAll` method was called from a Server Component.
-              // This can be ignored if you have middleware refreshing sessions.
-            }
+          setAll(cookies) {
+            cookies.forEach((cookie) => {
+              cookiesToSet.push(cookie);
+            });
           },
         },
       }
@@ -34,21 +40,19 @@ export async function GET(request: Request) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {
-      // Use the x-forwarded-host header for production URLs on Vercel
-      const forwardedHost = request.headers.get('x-forwarded-host');
-      const isLocalEnv = process.env.NODE_ENV === 'development';
+      // Create the response and manually set cookies
+      const response = NextResponse.redirect(`${redirectUrl}/`);
 
-      if (isLocalEnv) {
-        return NextResponse.redirect(`${origin}/`);
-      } else if (forwardedHost) {
-        return NextResponse.redirect(`https://${forwardedHost}/`);
-      } else {
-        return NextResponse.redirect(`${origin}/`);
-      }
+      // Set all cookies on the response
+      cookiesToSet.forEach(({ name, value, options }) => {
+        response.cookies.set(name, value, options);
+      });
+
+      return response;
     }
 
-    return NextResponse.redirect(`${origin}/auth?error=${encodeURIComponent(error.message)}`);
+    return NextResponse.redirect(`${redirectUrl}/auth?error=${encodeURIComponent(error.message)}`);
   }
 
-  return NextResponse.redirect(`${origin}/auth?error=No code provided`);
+  return NextResponse.redirect(`${redirectUrl}/auth?error=No code provided`);
 }
