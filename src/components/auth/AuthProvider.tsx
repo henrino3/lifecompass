@@ -30,9 +30,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const supabase = getSupabase();
 
+    // Debug: Log cookie info
+    const cookieNames = document.cookie.split(';').map(c => c.trim().split('=')[0]).filter(n => n.includes('sb-'));
+    console.log('AuthProvider: cookies found', cookieNames);
+
     // Get initial session
     supabase.auth.getSession().then(async ({ data: { session }, error }) => {
-      console.log('AuthProvider: getSession result', { session: !!session, error });
+      console.log('AuthProvider: getSession result', {
+        hasSession: !!session,
+        hasUser: !!session?.user,
+        userId: session?.user?.id,
+        error: error?.message
+      });
       setSession(session);
       setUser(session?.user ?? null);
 
