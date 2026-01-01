@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { StarField } from '@/components/effects/StarField';
 import { useAuth } from '@/components/auth/AuthProvider';
 
-export default function AuthPage() {
+function AuthContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { signInWithEmail } = useAuth();
@@ -131,5 +131,20 @@ export default function AuthPage() {
         </motion.div>
       </div>
     </main>
+  );
+}
+
+export default function AuthPage() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen relative overflow-hidden">
+        <StarField />
+        <div className="relative z-10 min-h-screen flex items-center justify-center">
+          <div className="text-[var(--text-muted)]">Loading...</div>
+        </div>
+      </main>
+    }>
+      <AuthContent />
+    </Suspense>
   );
 }
