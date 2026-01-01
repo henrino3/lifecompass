@@ -17,6 +17,12 @@ export async function GET(request: Request) {
   if (code) {
     const cookieStore = await cookies();
 
+    // WORKAROUND: Next.js 14+ bug - call getAll() twice before exchangeCodeForSession
+    // This ensures the cookie store is properly initialized
+    // See: https://github.com/supabase/ssr/issues/55
+    cookieStore.getAll();
+    cookieStore.getAll();
+
     // Collect cookies to set on the redirect response
     const cookiesToSet: { name: string; value: string; options: CookieOptions }[] = [];
 
