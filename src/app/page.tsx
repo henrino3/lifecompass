@@ -21,7 +21,6 @@ export default function Home() {
     setTheme,
     mode,
     startJourney,
-    hasSeenWelcome,
     setHasSeenWelcome,
     getProgress,
     currentYear,

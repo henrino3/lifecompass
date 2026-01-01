@@ -1,5 +1,5 @@
 import { Question } from './types';
-import { getQuestionsForMode, QUESTIONS } from './questions';
+import { getQuestionsForMode } from './questions';
 import { MODE_INFO, LIFE_AREAS } from './types';
 
 interface ExportData {

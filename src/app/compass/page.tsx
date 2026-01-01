@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { StarField } from '@/components/effects/StarField';
 import { useCompassStore } from '@/lib/store';
-import { getQuestionsForMode, getQuestionsBySection } from '@/lib/questions';
+import { getQuestionsForMode } from '@/lib/questions';
 import { Question, LIFE_AREAS, MONTHS, MODE_INFO } from '@/lib/types';
 
 // Question Card Component
@@ -438,9 +438,6 @@ export default function CompassPage() {
     if (!mode) return [];
     return getQuestionsForMode(mode);
   }, [mode]);
-
-  const pastQuestions = useMemo(() => getQuestionsBySection(questions, 'past'), [questions]);
-  const futureQuestions = useMemo(() => getQuestionsBySection(questions, 'future'), [questions]);
 
   const currentQuestion = questions[currentQuestionIndex];
   const progress = getProgress();
