@@ -8,6 +8,12 @@ export async function GET(request: Request) {
   const token_hash = searchParams.get('token_hash');
   const type = searchParams.get('type') as EmailOtpType | null;
 
+  // Debug logging
+  console.log('[Auth Callback] Request URL:', request.url);
+  console.log('[Auth Callback] token_hash:', token_hash);
+  console.log('[Auth Callback] type:', type);
+  console.log('[Auth Callback] All search params:', Object.fromEntries(searchParams));
+
   // Determine the redirect URL for Vercel
   const forwardedHost = request.headers.get('x-forwarded-host');
   const isLocalEnv = process.env.NODE_ENV === 'development';
