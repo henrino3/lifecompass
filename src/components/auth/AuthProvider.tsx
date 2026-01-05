@@ -12,7 +12,8 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   isLoading: boolean;
-  signInWithEmail: (email: string) => Promise<{ error: Error | null }>;
+  signUp: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
 }
 
@@ -85,13 +86,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [setStoreUser, setIsGuest, loadFromCloud]);
 
-  const signInWithEmail = async (email: string) => {
+  const signUp = async (email: string, password: string) => {
     const supabase = getSupabase();
-    const { error } = await supabase.auth.signInWithOtp({
+    const { error } = await supabase.auth.signUp({
       email,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-      },
+      password,
+    });
+    return { error };
+  };
+
+  const signIn = async (email: string, password: string) => {
+    const supabase = getSupabase();
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
     });
     return { error };
   };
@@ -116,7 +124,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         session,
         isLoading,
-        signInWithEmail,
+        signUp,
+        signIn,
         signOut,
       }}
     >

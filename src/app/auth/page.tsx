@@ -9,27 +9,35 @@ import { useAuth } from '@/components/auth/AuthProvider';
 function AuthContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { signInWithEmail } = useAuth();
+  const { signUp, signIn } = useAuth();
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isSignUp, setIsSignUp] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // Check for error from callback
   const errorParam = searchParams.get('error');
 
-  const handleEmailSignIn = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim()) return;
+    if (!email.trim() || !password.trim()) return;
 
     setIsLoading(true);
     setMessage(null);
 
-    const { error } = await signInWithEmail(email);
+    const { error } = isSignUp
+      ? await signUp(email, password)
+      : await signIn(email, password);
 
     if (error) {
       setMessage({ type: 'error', text: error.message });
     } else {
-      setMessage({ type: 'success', text: 'Check your email for the login link!' });
+      if (isSignUp) {
+        setMessage({ type: 'success', text: 'Account created! Signing you in...' });
+      }
+      // User will be automatically redirected by AuthProvider
+      router.push('/');
     }
 
     setIsLoading(false);
@@ -75,8 +83,8 @@ function AuthContent() {
               </motion.div>
             )}
 
-            {/* Email Magic Link */}
-            <form onSubmit={handleEmailSignIn} className="space-y-4">
+            {/* Email + Password Auth */}
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label htmlFor="email" className="block text-sm font-medium mb-2">
                   Email address
@@ -91,14 +99,42 @@ function AuthContent() {
                   disabled={isLoading}
                 />
               </div>
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium mb-2">
+                  Password
+                </label>
+                <input
+                  type="password"
+                  id="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="input w-full"
+                  disabled={isLoading}
+                  minLength={6}
+                />
+              </div>
               <button
                 type="submit"
-                disabled={isLoading || !email.trim()}
+                disabled={isLoading || !email.trim() || !password.trim()}
                 className="btn btn-primary w-full"
               >
-                {isLoading ? 'Sending...' : 'Send magic link'}
+                {isLoading ? (isSignUp ? 'Creating account...' : 'Signing in...') : (isSignUp ? 'Sign up' : 'Sign in')}
               </button>
             </form>
+
+            {/* Toggle between sign in and sign up */}
+            <div className="text-center">
+              <button
+                onClick={() => {
+                  setIsSignUp(!isSignUp);
+                  setMessage(null);
+                }}
+                className="text-sm text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors"
+              >
+                {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
+              </button>
+            </div>
 
             {/* Message */}
             {message && (
