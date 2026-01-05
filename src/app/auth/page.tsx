@@ -2,22 +2,18 @@
 
 import { Suspense, useState } from 'react';
 import { motion } from 'framer-motion';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { StarField } from '@/components/effects/StarField';
 import { useAuth } from '@/components/auth/AuthProvider';
 
 function AuthContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { signUp, signIn } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-
-  // Check for error from callback
-  const errorParam = searchParams.get('error');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,17 +68,6 @@ function AuthContent() {
 
           {/* Sign in form */}
           <div className="glass rounded-2xl p-6 space-y-6">
-            {/* Error message from callback */}
-            {errorParam && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="p-4 rounded-xl text-sm bg-red-500/20 text-red-300"
-              >
-                {decodeURIComponent(errorParam)}
-              </motion.div>
-            )}
-
             {/* Email + Password Auth */}
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
