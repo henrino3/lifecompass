@@ -430,6 +430,7 @@ export default function CompassPage() {
   } = useCompassStore();
 
   const [showSectionIntro, setShowSectionIntro] = useState<'past' | 'future' | null>('past');
+  const [shownIntros, setShownIntros] = useState<Set<string>>(new Set(['past'])); // Track which intros we've shown
   const [showCompletion, setShowCompletion] = useState(false);
   const [showExport, setShowExport] = useState(false);
   const [saveIndicator, setSaveIndicator] = useState(false);
@@ -451,12 +452,13 @@ export default function CompassPage() {
   const isFirstFutureQuestion = currentQuestion?.section === 'future' &&
     questions[currentQuestionIndex - 1]?.section === 'past';
 
-  // Show section intro for future section
+  // Show section intro for future section (only once)
   useEffect(() => {
-    if (isFirstFutureQuestion && showSectionIntro !== 'future') {
+    if (isFirstFutureQuestion && !shownIntros.has('future')) {
       setShowSectionIntro('future');
+      setShownIntros(prev => new Set(prev).add('future'));
     }
-  }, [isFirstFutureQuestion, showSectionIntro]);
+  }, [isFirstFutureQuestion, shownIntros]);
 
   // Redirect if no mode selected
   useEffect(() => {
